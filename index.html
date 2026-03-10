@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechJoint — Platform Usage Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-page: #f5f6f8;
+    --text: #111827;
+    --text-mid: #374151;
+    --text-dim: #6b7280;
+    --border: #e5e7eb;
+    --blue: #2563eb;
+    --blue-deep: #1e40af;
+    --blue-light: #eff6ff;
+    --teal: #0d9488;
+    --teal-light: #f0fdfa;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --green: #059669;
+    --green-light: #ecfdf5;
+    --slate: #1e293b;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-page);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HERO HEADER */
+  .hero {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #fff;
+    padding: 48px 24px 52px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .hero .sub {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-top: 6px;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat .num {
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .hero-stat .num.pop { color: #60a5fa; }
+  .hero-stat .num.teal { color: #5eead4; }
+  .hero-stat .num.white { color: #fff; }
+  .hero-stat .lbl {
+    font-size: 12px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 28px 20px 64px; }
+
+  /* CONTEXT */
+  .context {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    color: var(--text-mid);
+    box-shadow: var(--shadow-sm);
+    line-height: 1.7;
+  }
+  .context strong { color: var(--text); }
+
+  /* SECTIONS */
+  .section {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .section:hover { box-shadow: var(--shadow-md); }
+  .section-header {
+    padding: 18px 24px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+  .section-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--slate);
+  }
+  .section-header .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+  }
+  .section-header .arr {
+    color: var(--text-dim);
+    font-size: 13px;
+    transition: transform 0.25s;
+  }
+  .section.open .arr { transform: rotate(180deg); }
+  .section-body { max-height: 0; overflow: hidden; transition: max-height 0.45s ease; }
+  .section.open .section-body { max-height: 5000px; }
+  .section-inner { padding: 0 24px 28px; }
+
+  /* COMPARISON HERO CARD */
+  .vs-card {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0;
+    margin: 16px 0 20px;
+  }
+  .vs-box {
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+  }
+  .vs-box.you {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border: 2px solid #6ee7b7;
+  }
+  .vs-box.them {
+    background: #f9fafb;
+    border: 1px solid var(--border);
+  }
+  .vs-box .big {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .vs-box.you .big { color: var(--green); }
+  .vs-box.them .big { color: #9ca3af; }
+  .vs-box .desc { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+  .vs-box .sub-desc { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+  .vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #d1d5db;
+  }
+
+  /* CHARTS */
+  .chart-wrap { position: relative; margin: 12px 0 16px; }
+  .chart-wrap.h280 { height: 280px; }
+  .chart-wrap.h360 { height: 360px; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #f9fafb;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    color: var(--text-mid);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbfc; }
+  .amt {
+    font-family: 'SF Mono','Fira Code','Consolas', monospace;
+    font-weight: 700;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .dim { color: var(--text-dim); font-size: 12px; }
+
+  /* REPLACE TABLE */
+  .replace-table td:first-child { font-weight: 600; color: var(--text); }
+  .replace-table .price { color: #9ca3af; font-family: 'SF Mono',monospace; font-size: 13px; }
+
+  /* TAGS */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .tag.usage { background: var(--teal-light); color: var(--teal); }
+  .tag.fixed { background: var(--blue-light); color: var(--blue); }
+  .tag.fee { background: var(--amber-light); color: var(--amber); }
+
+  /* BARS */
+  .bar-bg {
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 90px;
+  }
+  .bar-fg { height: 100%; border-radius: 4px; }
+
+  /* NOTE CARDS */
+  .note {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .note h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .note p { color: var(--text-mid); }
+  .note.blue { background: var(--blue-light); border-left: 4px solid var(--blue); }
+  .note.blue h4 { color: var(--blue-deep); }
+  .note.green { background: var(--green-light); border-left: 4px solid var(--green); }
+  .note.green h4 { color: var(--green); }
+  .note.amber { background: var(--amber-light); border-left: 4px solid var(--amber); }
+  .note.amber h4 { color: var(--amber); }
+
+  /* MINI STATS */
+  .mini-stats {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .mini-stat {
+    background: #f9fafb;
+    border: 1px solid #f3f4f6;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .mini-stat .v { font-size: 24px; font-weight: 800; color: var(--text); }
+  .mini-stat .l { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .mini-stat.accent { background: var(--blue-light); border-color: #bfdbfe; }
+  .mini-stat.accent .v { color: var(--blue); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tab {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab:hover { border-color: var(--blue); color: var(--text); }
+  .tab.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .tp { display: none; }
+  .tp.on { display: block; }
+
+  /* SPLIT STAT */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .split-box {
+    border-radius: 12px;
+    padding: 22px 20px;
+    text-align: center;
+  }
+  .split-box .num { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+  .split-box .desc { font-size: 13px; margin-top: 4px; }
+  .split-box.a { background: var(--blue-light); border: 1px solid #bfdbfe; }
+  .split-box.a .num { color: var(--blue); }
+  .split-box.a .desc { color: var(--blue-deep); }
+  .split-box.b { background: var(--amber-light); border: 1px solid #fde68a; }
+  .split-box.b .num { color: var(--amber); }
+  .split-box.b .desc { color: #92400e; }
+
+  .footer {
+    text-align: center;
+    padding: 32px 0 0;
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding: 32px 16px 40px; }
+    .hero h1 { font-size: 22px; }
+    .hero-stats { gap: 20px; }
+    .hero-stat .num { font-size: 30px; }
+    .page { padding: 16px 12px 48px; }
+    .mini-stats { grid-template-columns: 1fr; }
+    .split { grid-template-columns: 1fr; }
+    .vs-card { grid-template-columns: 1fr; gap: 12px; }
+    .vs-divider { padding: 8px 0; }
+    .section-inner { padding: 0 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Platform Usage Report</h1>
+  <p class="sub">TechJoint Account Usage &nbsp;&middot;&nbsp; December 2025 &ndash; March 2026</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num pop">~$33</div>
+      <div class="lbl">Avg. Monthly Usage</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num white">370</div>
+      <div class="lbl">Calls Handled</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num teal">978</div>
+      <div class="lbl">Messages Sent</div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+<div class="context">
+  Your <strong>TechJoint</strong> account includes <strong>CRM, phone system, SMS/MMS, email, workflow automations, AI voice agent, call recording, reputation management, funnels, and scheduling</strong>. The account runs on a pay-per-use model &mdash; no monthly subscription, no base platform fee. Below is a breakdown of your usage and costs.
+</div>
+
+<!-- WHAT THIS REPLACES -->
+<div class="section open" id="s-value">
+  <div class="section-header" onclick="tog('s-value')">
+    <h2><span class="dot" style="background:var(--green)"></span>What TechJoint Includes &mdash; Market Rate Reference</h2>
+    <span class="arr">&#9660;</span>
+  </div>
+  <div class="section-body"><div class="section-inner">
+    <p style="font-size:14px;color:var(--text-mid);margin-bottom:16px;">
+      Each of these capabilities is included in TechJoint. For reference, here's what these services typically cost as standalone subscriptions.
+    </p>
+    <table class="replace-table">
+      <thead><tr><th>TechJoint Capability</th><th>Standalone Equivalent</th><th>Typical Market Rate</th></tr></thead>
+      <tbody>
+        <tr><td>CRM &amp; Pipeline</td><td>Salesforce, HubSpot</td><td class="price">$50&ndash;$300/mo</td></tr>
+        <tr><td>Phone System</td><td>Twilio, RingCentral</td><td class="price">$30&ndash;$100/mo</td></tr>
+        <tr><td>SMS &amp; MMS</td><td>Twilio, SimpleTexting</td><td class="price">$25&ndash;$80/mo</td></tr>
+        <tr><td>AI Voice Agent</td><td>Custom dev / Vapi</td><td class="price">$50&ndash;$200/mo</td></tr>
+        <tr><td>Email Marketing</td><td>Mailchimp, ActiveCampaign</td><td class="price">$20&ndash;$100/mo</td></tr>
+        <tr><td>Funnels &amp; Pages</td><td>ClickFunnels</td><td class="price">$97&ndash;$297/mo</td></tr>
+        <tr><td>Scheduling</td><td>Calendly</td><td class="price">$12&ndash;$20/mo</td></tr>
+        <tr><td>Reputation Mgmt</td><td>Birdeye, Podium</td><td class="price">$100&ndash;$350/mo</td></tr>
+        <tr><td>Automations</td><td>Zapier, Make</td><td class="price">$20&ndash;$100/mo</td></tr>
+      </tbody>
+    </table>
+
+    <div class="vs-card">
+      <div class="vs-box you">
+        <div class="big">~$33/mo</div>
+        <div class="desc">Your TechJoint usage</div>
+        <div class="sub-desc">Avg. monthly &mdash; all features included</div>
+      </div>
+      <div class="vs-divider">vs</div>
+      <div class="vs-box them">
+        <div class="big">$400&ndash;$1,500+</div>
+        <div class="desc">Market rate for equivalent tools</div>
+        <div class="sub-desc">Purchased separately</div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- WHERE MONEY GOES -->
+<div class="section open" id="s-breakdown">
+  <div class="section-header" onclick="tog('s-breakdown')">
+    <h2><span class="dot" style="background:var(--blue)"></span>Where Your Money Goes</h2>
+    <span class="arr">&#9660;</span>
+  </div>
+  <div class="section-body"><div class="section-inner">
+    <div class="chart-wrap h280">
+      <canvas id="catChart"></canvas>
+    </div>
+    <table>
+      <thead><tr><th>Category</th><th>Monthly Avg.</th><th>Share</th><th style="min-width:120px"></th></tr></thead>
+      <tbody>
+        <tr><td><strong>Phone Calls</strong></td><td class="amt">~$20.00/mo</td><td class="dim">61%</td><td><div class="bar-bg"><div class="bar-fg" style="width:100%;background:var(--blue)"></div></div></td></tr>
+        <tr><td><strong>Text Messaging</strong></td><td class="amt">~$9.88/mo</td><td class="dim">30%</td><td><div class="bar-bg"><div class="bar-fg" style="width:49%;background:var(--teal)"></div></div></td></tr>
+        <tr><td><strong>Phone Number</strong></td><td class="amt">$2.30/mo</td><td class="dim">7%</td><td><div class="bar-bg"><div class="bar-fg" style="width:12%;background:#94a3b8"></div></div></td></tr>
+        <tr><td><strong>Email</strong></td><td class="amt">~$0.02/mo</td><td class="dim">&lt;1%</td><td><div class="bar-bg"><div class="bar-fg" style="width:1%;background:#6366f1"></div></div></td></tr>
+        <tr><td><strong>AI &amp; Other</strong></td><td class="amt">~$0.51/mo</td><td class="dim">2%</td><td><div class="bar-bg"><div class="bar-fg" style="width:3%;background:#cbd5e1"></div></div></td></tr>
+        <tr style="border-top:2px solid var(--border)"><td><strong>Total</strong></td><td class="amt"><strong>~$33/mo</strong></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="note blue" style="margin-top:18px;">
+      <h4>Email: $0.00135 per email sent</h4>
+      <p>51 emails sent over this period for a total of $0.07. At that rate, <strong>1,000 emails costs about $1.35</strong>. A standalone email platform like Mailchimp or ActiveCampaign starts at $20&ndash;$40/mo whether you send 10 emails or 10,000. With pay-per-use, a quiet month costs almost nothing.</p>
+    </div>
+  </div></div>
+</div>
+
+<!-- EMAIL CAMPAIGNS -->
+<div class="section open" id="s-email">
+  <div class="section-header" onclick="tog('s-email')">
+    <h2><span class="dot" style="background:#6366f1"></span>Email Campaigns &mdash; Set Up Once, Runs All Year</h2>
+    <span class="arr">&#9660;</span>
+  </div>
+  <div class="section-body"><div class="section-inner">
+    <p style="font-size:14px;color:var(--text-mid);margin-bottom:16px;">
+      Email marketing averages <strong>$36&ndash;$42 return for every $1 spent</strong> &mdash; the highest ROI of any marketing channel. At $0.00135 per email, a 1,000-contact campaign costs $1.35 and only needs one conversion to pay for itself many times over.
+    </p>
+
+    <div class="note blue">
+      <h4>Trigger Link Campaigns &mdash; Automatic Audience Filtering</h4>
+      <p>Send one email to your full list. Based on which link each person clicks, they automatically get sorted into different follow-up sequences. Build it once, and it runs on autopilot all year.</p>
+    </div>
+
+    <div style="background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:14px 0;">
+      <p style="font-size:13px;font-weight:700;color:var(--slate);margin-bottom:10px;">How to set this up:</p>
+      <ol style="font-size:13px;color:var(--text-mid);padding-left:20px;line-height:1.9;">
+        <li>Go to <strong>Marketing &rarr; Emails</strong> and create your campaign. In the email body, add links for each offer or topic (e.g., "View Catering Menu," "Book a Party," "See Weekly Specials"). Under each link's settings, check <strong>"Enable Trigger Link"</strong> and name the trigger.</li>
+        <li>Go to <strong>Automation &rarr; Workflows</strong> and create a new workflow. Set the trigger to <strong>"Trigger Link Clicked"</strong> and select the link name you created. Add follow-up actions &mdash; send a specific email sequence, apply a tag, notify your team, or move them into a pipeline stage.</li>
+        <li>Repeat for each trigger link. Now every link in your original email routes people into a tailored follow-up &mdash; no manual sorting, no extra sends, no extra cost until someone actually engages.</li>
+      </ol>
+    </div>
+  </div></div>
+</div>
+
+<!-- TEXT MESSAGE CAMPAIGNS -->
+<div class="section open" id="s-sms-campaigns">
+  <div class="section-header" onclick="tog('s-sms-campaigns')">
+    <h2><span class="dot" style="background:var(--teal)"></span>Text Message Campaigns &mdash; Reach Every Contact Instantly</h2>
+    <span class="arr">&#9660;</span>
+  </div>
+  <div class="section-body"><div class="section-inner">
+    <p style="font-size:14px;color:var(--text-mid);margin-bottom:16px;">
+      SMS open rates are <strong>98%</strong> compared to ~20% for email. Text messages are typically read within 3 minutes. A campaign to your full contact list costs pennies per message and gets your offer seen almost immediately.
+    </p>
+
+    <div class="note green">
+      <h4>Bulk SMS to All Contacts</h4>
+      <p>Send promotions, announcements, or reminders to your entire list or a filtered segment in one step. Responses come back into the CRM conversation thread, so you can follow up individually.</p>
+    </div>
+
+    <div style="background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:14px 0;">
+      <p style="font-size:13px;font-weight:700;color:var(--slate);margin-bottom:10px;">How to set this up:</p>
+      <ol style="font-size:13px;color:var(--text-mid);padding-left:20px;line-height:1.9;">
+        <li>Go to <strong>Contacts &rarr; Smart Lists</strong> and either select "All Contacts" or create a filtered list (e.g., contacts tagged "Catering Leads" or contacts who haven't visited in 30 days). This is your audience.</li>
+        <li>Go to <strong>Marketing &rarr; Campaigns</strong>, create a new campaign, and choose <strong>SMS</strong> as the channel. Write your message &mdash; keep it under 160 characters for a single segment. Use personalization fields like <strong>{{contact.first_name}}</strong> to make it feel direct.</li>
+        <li>Select your smart list as the recipient group, set the send time (or send immediately), and launch. Every reply lands in <strong>Conversations</strong> so you or your team can respond in real time.</li>
+      </ol>
+    </div>
+  </div></div>
+</div>
+
+<!-- AI BLOG CONTENT -->
+<div class="section open" id="s-blog">
+  <div class="section-header" onclick="tog('s-blog')">
+    <h2><span class="dot" style="background:var(--amber)"></span>AI Blog Posts &mdash; Content That Drives Search Traffic</h2>
+    <span class="arr">&#9660;</span>
+  </div>
+  <div class="section-body"><div class="section-inner">
+    <p style="font-size:14px;color:var(--text-mid);margin-bottom:16px;">
+      Businesses that blog get <strong>55% more website visitors</strong> than those that don't. GoHighLevel's built-in AI content tools let you generate, edit, and publish blog posts directly to your site without needing a separate CMS or content writer.
+    </p>
+
+    <div class="note amber">
+      <h4>AI-Generated Blog Content</h4>
+      <p>Use AI to draft full blog posts based on a topic or keyword. Edit as needed, publish to your site, and build organic search presence over time &mdash; no writing experience required.</p>
+    </div>
+
+    <div style="background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:14px 0;">
+      <p style="font-size:13px;font-weight:700;color:var(--slate);margin-bottom:10px;">How to set this up:</p>
+      <ol style="font-size:13px;color:var(--text-mid);padding-left:20px;line-height:1.9;">
+        <li>Go to <strong>Sites &rarr; Blogs</strong> and click <strong>"Create Post."</strong> Enter your topic or keyword (e.g., "best catering ideas for corporate events"). Click the <strong>AI Content</strong> button to generate a full draft &mdash; title, body, and meta description.</li>
+        <li>Review and edit the draft. Add your own details, swap in real examples, and adjust the tone. Set a featured image and add relevant tags or categories for your site's blog section.</li>
+        <li>Hit <strong>Publish</strong> (or schedule for later). The post goes live on your website automatically. Over time, these posts build search visibility and bring in organic traffic &mdash; people finding your business through Google without paying for ads.</li>
+      </ol>
+    </div>
+  </div></div>
+</div>
+
+<div class="footer">TechJoint Platform Usage &nbsp;&middot;&nbsp; Generated March 2026</div>
+
+</div>
+
+<script>
+function tog(id){ document.getElementById(id).classList.toggle('open'); }
+Chart.defaults.color='#6b7280';
+Chart.defaults.borderColor='#e5e7eb';
+Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+const ttStyle={backgroundColor:'#1e293b',titleColor:'#fff',bodyColor:'#e2e5eb',padding:12,cornerRadius:8};
+
+new Chart(document.getElementById('catChart'),{
+  type:'doughnut',
+  data:{
+    labels:['Phone Calls','Text Messaging','Phone Number','Email','AI & Other'],
+    datasets:[{
+      data:[20.00,9.88,2.30,0.02,0.51],
+      backgroundColor:['#2563eb','#0d9488','#94a3b8','#6366f1','#cbd5e1'],
+      borderWidth:3, borderColor:'#fff', hoverOffset:8
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, cutout:'60%',
+    plugins:{
+      legend:{position:'right',labels:{padding:16,usePointStyle:true,pointStyle:'circle',font:{size:13,weight:'600'}}},
+      tooltip:{...ttStyle, callbacks:{label:c=>`${c.label}: ~$${c.parsed.toFixed(2)}/mo`}}
+    }
+  }
+});
+</script>
+</body>
+</html>
